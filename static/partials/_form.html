@@ -1,0 +1,124 @@
+<div class="col-md-offset-2 col-md-8">
+    <img ng-src="{{ticket.fields.assignee.avatarUrls['48x48']}}"
+         title="{{ticket.fields.assignee.name}}"
+	 height="48">
+    {{ticket.fields.assignee.name}}
+    <img ng-repeat="comment in ticket.fields.comment.comments"
+         ng-src="{{comment.updateAuthor.avatarUrls['32x32']}}"
+	 height="32"
+         title="{{comment.updateAuthor.displayName}}">
+</div>
+
+<form class="form-horizontal" role="form" ng-submit="addTicket()">
+    <input type="hidden" name="key" value="{[ticket.key]}">
+    <div class="col-md-9">
+	
+	<!--
+	     When editing an OLD ticket we want to key the KEY,
+	     When its a NEW ticket, then hide the key...
+	   -->
+	<div class="form-group from-group-lg" ng-show="ticket.key">
+            <label for="inputEmail3"
+		   class="col-sm-3 control-label">
+		Key
+	    </label>
+            <div class="col-sm-9">
+		<p class="form-control-static">{{ticket.key}}</p>
+            </div>
+	</div>
+
+	<div class="form-group from-group-lg" ng-hide="ticket.key">
+            <label for="inputEmail3"
+		   class="col-sm-3 control-label">
+		username
+	    </label>
+            <div class="col-sm-3">
+		<p class="form-control-static">{{username}}</p>
+            </div>
+	</div>
+	<div class="form-group from-group-lg" ng-hide="ticket.key">
+            <label for="inputEmail3"
+		   class="col-sm-3 control-label">
+		project
+	    </label>
+            <div class="col-sm-3">
+		<p class="form-control-static">{{project}}</p>
+            </div>
+	</div>
+
+	<!-- Summary -->
+        <div class="form-group form-group-lg">
+            <label for="inputEmail3" class="col-sm-3 control-label">Summary</label>
+            <div class="col-sm-9">
+              <input type="text"
+                     placeholder="Title"
+                     data-ng-model="ticket.fields.summary"
+		     class="input input-lg"
+		     style="width: 100%"
+	      />
+            </div>
+        </div>
+
+        <div class="form-group form-group-lg">
+            <label for="inputEmail3" class="col-sm-3 control-label">Description</label>
+            <div class="col-sm-9">
+              <textarea class="form-control"
+                        placeholder="Description"
+                        rows="5"
+                        data-ng-model="ticket.fields.description">
+	      </textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+	    <label for="inputEmail3" class="col-sm-3 control-label">Label</label>
+	    <div class="col-sm-9">
+		<div ng-repeat="label in labels" class="radio">
+		    <label class="btn {{label.class}}" style="width: 100%;">
+			<input type="radio" name="label"
+			       value="{{label.name}}"
+			       data-ng-model="ticket.fields.label">
+			{{label.name}}
+		    </label>
+		</div>
+	    </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-3 control-label">Fabric</label>
+	    <div class="radio col-sm-3" ng-repeat="fabricgroup in fabricgroups">
+		<label class="btn btn-default btn-block">
+		    <input type="radio" name="fabricgroup"
+			   data-ng-model="ticket.fields.fabricgroup" value="fabricgroup" >
+		    {{fabricgroup}}
+		</label>
+	    </div>
+        </div>
+    
+	<div class="form-group">
+            <label for="inputEmail3" class="col-sm-3 control-label">Points</label>
+	    <div ng-repeat="size in sizes" class="col-sm-3">
+		<div class="radio">
+		    <label class="btn btn-default btn-block">
+			<input type="radio" name="points"
+			       data-ng-model="ticket.fields.points" value="{{size}}" >{{size}}
+		    </label>
+		</div>
+	    </div>
+	</div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="form-group">
+            <div class="col-sm-12">
+                <button type="submit" class="btn btn-default btn-block btn-lg btn-primary">
+                    Save {{ticket.key}}
+                </button>
+            </div>
+        </div>
+    </div>
+
+</form>

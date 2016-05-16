@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en" data-ng-app="ticketApp">
+    <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+            integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+            crossorigin="anonymous">
+
+      <!-- Optional theme -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+            integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
+            crossorigin="anonymous">
+
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.css" />
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-resource/1.5.5/angular-resource.min.js" ></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.18/angular-ui-router.min.js"></script>
+      <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-cookies.js"></script>
+      <style>
+       body {
+           padding-top: 70px;
+       }
+       .ticket_row .ticket_link {
+           font-weight: 800;
+       }
+       .ticket_row .ticket_size {
+           font-weight: 100;
+           font-size: 1em;
+       }
+       
+       .ticket_row {
+           font-size: 2em;
+           padding-bottom: 5px;
+           border-bottom: 1px solid #dfdfdf;
+           margin-bottom: 2px;
+       }
+       a, a:hover {
+           text-decoration: none;
+       }
+      </style>
+  </head>
+  <body>
+
+      <!-- Fixed navbar -->
+      <nav class="navbar navbar-default navbar-fixed-top">
+          <div class="container">
+              <div class="navbar-header">
+                  <button type="button" class="navbar-toggle collapsed"
+                          data-toggle="collapse" data-target="#navbar"
+                          aria-expanded="false" aria-controls="navbar">
+                      <span class="sr-only">Toggle navigation</span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                  </button>
+                  <a class="navbar-brand" href="/#/tickets">Urgh!</a>
+              </div>
+              <div id="navbar" class="navbar-collapse collapse">
+                  <ul class="nav navbar-nav">
+                      <li><a href="/#/tickets">All</a></li>
+                      <li><a href="/#/tickets/new">New</a></li>
+		      <li><a href="/#/settings">Settings</a></li>
+                  </ul>
+                  <ul class="nav navbar-nav navbar-right">
+                  </ul>
+              </div><!--/.nav-collapse -->
+          </div>
+      </nav>
+
+      <div class="container">
+          <div ui-view></div>
+      </div>
+
+
+      <script>
+
+       angular.module('ticketApp.services', ['ngCookies'])
+              .factory('Ticket', function($resource, $cookies) {
+                  return $resource('/api/v0/tickets/:id/?jql=:jql', {
+		      id: '@key',
+		      jql: "assignee = '" + $cookies.get('username') + "'"
+		  }, {
+                      update: {
+                          method: 'PUT'
+                      }
+                  })
+              })
+              .factory('Label', function($resource) {
+                  return $resource('/api/v0/labels/:id', { id: '@id' }, {
+                      update: {
+                          method: 'PUT'
+                      }
+                  })
+              })
+              .factory('FabricGroup', function($resource) {
+                  return $resource('/api/v0/fabricgroups/:id', { id: '@id' }, {
+                      update: {
+                          method: 'PUT'
+                      }
+                  })
+              })
+	      .factory('Size', function($resource) {
+                  return $resource('/api/v0/sizes/:id', { id: '@id' }, {
+		      update: {
+                          method: 'PUT'
+		      }
+                  })
+	      });
+
+       angular.module('ticketApp.controllers', []).controller('TicketListController', function($scope, $state, $window, $cookies, Ticket, Label, FabricGroup) {
+           $scope.tickets = Ticket.query();
+	   $scope.username = $cookies.get('username');
+
+       }).controller('TicketViewController', function(
+	   $scope, $stateParams, Ticket, Label, Size, $cookies, FabricGroup)
+	   {
+               $scope.ticket = Ticket.get({ id: $stateParams.id });
+               $scope.labels = Label.query();
+               $scope.sizes = Size.query();
+	       $scope.fabricgroups = FabricGroup.query();
+	       
+	       username = $cookies.get('username');
+	       if (username == ''){
+		   $state.get('settings');
+	       }
+
+               $scope.addTicket = function() {
+               $scope.ticket.$save(function() {
+                   $state.go('tickets');
+               });
+           };
+
+
+	   }).controller('TicketCreateController', function(
+	       $scope, $state, $stateParams, Ticket, Label, Size, FabricGroup, $cookies)
+	       {
+		   $scope.ticket = new Ticket();
+		   $scope.labels = Label.query();
+		   $scope.sizes = Size.query();
+		   $scope.fabricgroups = FabricGroup.query();
+		   $scope.username = $cookies.get('username');
+		   $scope.project = $cookies.get('project');
+		 
+		   $scope.set_label = function(name) {
+		       console.log(name);
+		       $scope.ticket.desired_label = name;
+		   };
+
+		   
+		   $scope.addTicket = function() {
+		       $scope.ticket.$save(function() {
+			   $state.go('tickets');
+		       });
+		   };
+
+	       }).controller('TicketEditController', function(
+		   $scope, $state, $stateParams,
+		   Ticket, Label, Size, FabricGroup
+	       ) {
+		   
+		   $scope.labels = Label.query();
+		   $scope.sizes = Size.query();
+		   $scope.fabricgroups = FabricGroup.query();
+
+		   $scope.updateTicket = function() {
+		       $scope.ticket.$update(function() {
+                   $state.go('tickets');
+		       });
+		   };
+		   
+		   $scope.loadTicket = function() {
+		       $scope.ticket = Ticket.get({ id: $stateParams.id });
+		   };
+		   
+           $scope.loadTicket();
+	  
+       }).controller('SettingsController', function($scope, $state, $stateParams, $cookies) {
+	   
+	   // Restore values from session!
+	   $scope.username = $cookies.get('username');
+	   $scope.project = $cookies.get('project');
+	   $scope.level = $cookies.get('level');
+	   console.log("scope", $scope);
+	   console.log("cookies", $cookies);
+           $scope.saveSettings = function() {
+	       $cookies.put('username', $scope.username);
+	       $cookies.put('project', $scope.project);
+	       $cookies.put('level', $scope.level);
+	       console.log($scope);
+	       
+               $state.go('tickets');
+           };
+
+       });
+
+       angular.module('ticketApp', ['ui.router', 'ngResource', 'ngCookies',
+                                   'ticketApp.controllers', 'ticketApp.services']);
+
+       angular.module('ticketApp').config(function($stateProvider) {
+           $stateProvider
+	   .state('tickets', {
+               url: '/tickets',
+               templateUrl: '/static/partials/tickets.html',
+               controller: 'TicketListController'
+           }).state('viewTicket', {
+               url: '/tickets/:id/view',
+               templateUrl: '/static/partials/ticket-view.html',
+               controller: 'TicketViewController'
+           }).state('newTicket', {
+               url: '/tickets/new',
+               templateUrl: '/static/partials/ticket-add.html',
+               controller: 'TicketCreateController'
+           }).state('editTicket', {
+               url: '/tickets/:id/edit',
+               templateUrl: '/static/partials/ticket-edit.html',
+               controller: 'TicketEditController'
+	   }).state('settings', {
+               url: '/settings',
+               templateUrl: '/static/partials/settings.html',
+               controller: 'SettingsController'
+	   });
+
+       }).run(function($state) {
+           $state.go('tickets');
+       });
+
+      </script>
+  </body>
+</html>
